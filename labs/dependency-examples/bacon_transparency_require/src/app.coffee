@@ -43,7 +43,10 @@ define ['bacon', 'controllers/footer'], (Bacon, FooterController) ->
       newTodo.onValue          @el.find('#new-todo'),  'val', ''
       todoListNotEmpty.onValue @el.find('#main'),      'toggle'
       todoListNotEmpty.onValue @el.find('#footer'),    'toggle'
-      todos.onValue            @el.find('#todo-list'), 'render'
+      todos.onValue (todos) =>
+        @el.find('#todo-list').render todos,
+          # Ugly, fix Transparency
+          toggle: checked: (p) -> $(p.element).prop('checked', @completed); return
 
       # Kickstart
       todoBus.plug toggledTodo.map(todos)

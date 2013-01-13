@@ -8,7 +8,8 @@
       ENTER_KEY = 13;
 
       function TodoApp(_arg) {
-        var deletedTodo, footerController, newTodo, todoBus, todoListNotEmpty, todos, toggledTodo;
+        var deletedTodo, footerController, newTodo, todoBus, todoListNotEmpty, todos, toggledTodo,
+          _this = this;
         this.el = _arg.el;
         todoBus = new Bacon.Bus().log();
         footerController = new FooterController({
@@ -59,7 +60,15 @@
         newTodo.onValue(this.el.find('#new-todo'), 'val', '');
         todoListNotEmpty.onValue(this.el.find('#main'), 'toggle');
         todoListNotEmpty.onValue(this.el.find('#footer'), 'toggle');
-        todos.onValue(this.el.find('#todo-list'), 'render');
+        todos.onValue(function(todos) {
+          return _this.el.find('#todo-list').render(todos, {
+            toggle: {
+              checked: function(p) {
+                $(p.element).prop('checked', this.completed);
+              }
+            }
+          });
+        });
         todoBus.plug(toggledTodo.map(todos));
         todoBus.push([]);
       }
