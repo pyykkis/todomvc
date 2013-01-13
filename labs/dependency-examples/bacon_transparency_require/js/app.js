@@ -8,7 +8,7 @@
       ENTER_KEY = 13;
 
       function TodoApp(_arg) {
-        var allCompleted, deletedTodo, footerController, newTodo, todoBus, todoListNotEmpty, todos, toggleAll, toggledTodo,
+        var allCompleted, deleteTodo, footerController, newTodo, todoBus, todoListNotEmpty, todos, toggleAll, toggleTodo,
           _this = this;
         this.el = _arg.el;
         todoBus = new Bacon.Bus().log();
@@ -25,33 +25,31 @@
             return !t.completed;
           }).length === 0;
         });
+        deleteTodo = this.el.find('#todo-list').asEventStream('click', '.destroy');
+        toggleTodo = this.el.find('#todo-list').asEventStream('click', '.toggle');
+        toggleAll = this.el.find('#toggle-all').asEventStream('click');
         newTodo = this.el.find('#new-todo').asEventStream('keyup').filter(function(e) {
           return e.keyCode === ENTER_KEY;
         }).map(function(e) {
           return {
-            todo: e.target.value.trim(),
-            completed: false
+            t: {
+              todo: e.target.value.trim(),
+              completed: false
+            }
           };
         }).filter(function(_arg1) {
           var todo;
-          todo = _arg1.todo;
+          todo = _arg1.t.todo;
           return todo.length > 0;
         });
-        deletedTodo = this.el.find('#todo-list').asEventStream('click', '.destroy').map('.target.transparency.model');
-        toggledTodo = this.el.find('#todo-list').asEventStream('click', '.toggle').map('.target.transparency.model');
-        toggleAll = this.el.find('#toggle-all').asEventStream('click').map('.target.checked');
-        newTodo.map(function(t) {
-          return {
-            t: t
-          };
-        }).decorateWith('ts', todos).onValue(function(_arg1) {
+        newTodo.decorateWith('ts', todos).onValue(function(_arg1) {
           var t, ts;
           ts = _arg1.ts, t = _arg1.t;
           return todoBus.push(ts.concat([t]));
         });
-        deletedTodo.map(function(t) {
+        deleteTodo.map(function(e) {
           return {
-            d: d
+            d: e.target.transparency.model
           };
         }).decorateWith('ts', todos).onValue(function(_arg1) {
           var d, ts;
@@ -60,12 +58,12 @@
             return t !== d;
           }));
         });
-        toggledTodo.onValue(function(t) {
+        toggleTodo.map('.target.transparency.model').onValue(function(t) {
           return t.completed = !t.completed;
         });
-        toggleAll.map(function(completed) {
+        toggleAll.map(function(e) {
           return {
-            completed: completed
+            completed: e.target.checked
           };
         }).decorateWith('ts', todos).onValue(function(_arg1) {
           var completed, ts;
@@ -88,7 +86,7 @@
             }
           });
         });
-        todoBus.plug(toggledTodo.map(todos));
+        todoBus.plug(toggleTodo.map(todos));
         todoBus.push([]);
       }
 

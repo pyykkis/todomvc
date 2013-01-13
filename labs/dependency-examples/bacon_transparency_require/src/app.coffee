@@ -7,46 +7,41 @@ define ['bacon', 'controllers/footer'], (Bacon, FooterController) ->
       todoBus          = new Bacon.Bus().log()
       footerController = new FooterController(el: @el.find('#footer'), todoBus: todoBus)
 
+      # Properties
       todos            = todoBus.toProperty()
       todoListNotEmpty = todos.map((ts) -> ts.length > 0)
       allCompleted     = todos.map((ts) -> ts.filter((t) -> !t.completed).length == 0)
 
-      newTodo = @el.find('#new-todo').asEventStream('keyup')
+      # Events
+      deleteTodo = @el.find('#todo-list').asEventStream('click', '.destroy')
+      toggleTodo = @el.find('#todo-list').asEventStream('click', '.toggle')
+      toggleAll  = @el.find('#toggle-all').asEventStream('click')
+      newTodo    = @el.find('#new-todo').asEventStream('keyup')
         .filter((e) -> e.keyCode == ENTER_KEY)
-        .map((e) -> todo: e.target.value.trim(), completed: false)
-        .filter(({todo}) -> todo.length > 0)
-
-      deletedTodo = @el.find('#todo-list').asEventStream('click', '.destroy')
-        .map('.target.transparency.model')
-
-      toggledTodo = @el.find('#todo-list').asEventStream('click', '.toggle')
-        .map('.target.transparency.model')
-
-      toggleAll = @el.find('#toggle-all').asEventStream('click')
-        .map('.target.checked')
+        .map((e) -> t: {todo: e.target.value.trim(), completed: false})
+        .filter(({t: {todo}}) -> todo.length > 0)
 
       #### Side effects
 
-      # Add new todo to the list
-      newTodo.map((t) -> t: t)
+      newTodo
         .decorateWith('ts', todos)
         .onValue(({ts, t}) -> todoBus.push ts.concat [t])
 
-      # Delete todo from the list
-      deletedTodo.map((t) -> d: d)
+      deleteTodo
+        .map((e) -> d: e.target.transparency.model)
         .decorateWith('ts', todos)
         .onValue(({ts, d}) -> todoBus.push ts.filter (t) -> t != d)
 
-      # Toggle todo
-      toggledTodo.onValue((t) -> t.completed = not t.completed)
+      toggleTodo
+        .map('.target.transparency.model')
+        .onValue((t) -> t.completed = !t.completed)
 
-      # Toggle all
-      toggleAll.map((completed) -> completed: completed)
+      toggleAll
+        .map((e) -> completed: e.target.checked)
         .decorateWith('ts', todos)
         .onValue(({ts, completed}) ->
           todoBus.push ts.map((t) -> t.completed = completed; t))
 
-      # Update view
       newTodo.onValue          @el.find('#new-todo'),   'val', ''
       todoListNotEmpty.onValue @el.find('#main'),       'toggle'
       todoListNotEmpty.onValue @el.find('#footer'),     'toggle'
@@ -57,5 +52,5 @@ define ['bacon', 'controllers/footer'], (Bacon, FooterController) ->
           toggle: checked: (p) -> $(p.element).prop('checked', @completed); return
 
       # Kickstart
-      todoBus.plug toggledTodo.map(todos)
+      todoBus.plug toggleTodo.map(todos)
       todoBus.push []
