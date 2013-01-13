@@ -12,7 +12,7 @@ define ['bacon', 'controllers/footer'], (Bacon, FooterController) ->
       todoListNotEmpty = todos.map((ts) -> ts.length > 0)
       allCompleted     = todos.map((ts) -> ts.filter((t) -> !t.completed).length == 0)
 
-      # Events
+      # EventStreams
       deleteTodo = @el.find('#todo-list').asEventStream('click', '.destroy')
       toggleTodo = @el.find('#todo-list').asEventStream('click', '.toggle')
       toggleAll  = @el.find('#toggle-all').asEventStream('click')
@@ -21,8 +21,7 @@ define ['bacon', 'controllers/footer'], (Bacon, FooterController) ->
         .map((e) -> t: {todo: e.target.value.trim(), completed: false})
         .filter(({t: {todo}}) -> todo.length > 0)
 
-      #### Side effects
-
+      # Side effects
       newTodo
         .decorateWith('ts', todos)
         .onValue(({ts, t}) -> todoBus.push ts.concat [t])

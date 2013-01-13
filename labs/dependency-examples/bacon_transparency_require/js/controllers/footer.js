@@ -13,7 +13,7 @@
           return ts.filter(function(t) {
             return !t.completed;
           });
-        }).log();
+        });
         completedTodos = todos.map(function(ts) {
           return ts.filter(function(t) {
             return t.completed;

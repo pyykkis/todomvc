@@ -2,11 +2,11 @@ define ['bacon'], (Bacon) ->
   class FooterController
     constructor: ({@el, @todoBus}) ->
       todos                 = @todoBus.toProperty()
-      openTodos             = todos.map((ts) -> ts.filter (t) -> !t.completed).log()
+      openTodos             = todos.map((ts) -> ts.filter (t) -> !t.completed)
       completedTodos        = todos.map((ts) -> ts.filter (t) -> t.completed)
       completedListNotEmpty = completedTodos.map((ts) -> ts.length > 0)
 
-      #### Side effects
+      # Side effects
 
       # Clear completed todos
       @el.find('#clear-completed')
