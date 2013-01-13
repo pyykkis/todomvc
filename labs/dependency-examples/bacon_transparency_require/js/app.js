@@ -19,13 +19,23 @@
           return e.target.value.trim();
         }).filter(function(val) {
           return val.length > 0;
-        }).log();
+        });
         showTodos = todos.map(function(todos) {
           return todos.length > 0;
+        });
+        newTodo.map(function(t) {
+          return {
+            t: t
+          };
+        }).decorateWith('ts', todos.toProperty()).onValue(function(_arg1) {
+          var t, ts;
+          ts = _arg1.ts, t = _arg1.t;
+          return todos.push(ts.concat([t]));
         });
         showTodos.onValue(this.el.find('#main'), 'toggle');
         showTodos.onValue(this.el.find('#footer'), 'toggle');
         todos.push([]);
+        todos.log();
       }
 
       return TodoApp;
