@@ -8,6 +8,7 @@
     },
     shim: {
       bacon: {
+        deps: ['jquery'],
         exports: 'Bacon'
       }
     }

@@ -1,18 +1,25 @@
 define ['bacon'], (Bacon) ->
 
   class TodoApp
-    constructor: ({@el}) ->
-      # Elements
-      @main   = @el.find '#main'
-      @footer = @el.find '#footer'
+    ENTER_KEY = 13
 
-      # Events and Properties
-      todos     = new Bacon.Bus()
+    constructor: ({@el}) ->
+       # Events and Properties
+      todos   = new Bacon.Bus()
+
+      keyup   = @el.find('#new-todo').asEventStream('keyup')
+      enter   = keyup.filter((e) -> e.keyCode == ENTER_KEY)
+      newTodo = keyup.toProperty()
+        .sampledBy(enter)
+        .map((e) -> e.target.value.trim())
+        .filter((val) -> val.length > 0)
+        .log()
+
       showTodos = todos.map (todos) -> todos.length > 0
 
       # Side effects
-      showTodos.onValue @main,   'toggle'
-      showTodos.onValue @footer, 'toggle'
+      showTodos.onValue @el.find('#main'),   'toggle'
+      showTodos.onValue @el.find('#footer'), 'toggle'
 
       # Kickstart
       todos.push []

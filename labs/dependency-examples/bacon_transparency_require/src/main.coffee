@@ -4,7 +4,9 @@ require.config
     'bacon':        'lib/bacon.min'
     'transparency': 'lib/transparency.min'
   shim:
-    bacon: exports: 'Bacon'
+    bacon:
+      deps: ['jquery']
+      exports: 'Bacon'
 
 require ['jquery', 'transparency', 'app'], ($, Transparency, TodoApp) ->
 
