@@ -22,6 +22,9 @@
         completedListNotEmpty = completedTodos.map(function(ts) {
           return ts.length > 0;
         });
+        openTodos.map(function(ts) {
+          return ("<strong>" + ts.length + "</strong> ") + (ts.length === 1 ? "item left" : "items left");
+        }).onValue(this.el.find('#todo-count'), 'html');
         completedListNotEmpty.onValue(this.el.find('#clear-completed'), 'toggle');
         completedTodos.onValue(function(completedTodos) {
           return _this.el.find('#clear-completed').text("Clear completed (" + completedTodos.length + ")");

@@ -40,11 +40,10 @@ define ['bacon', 'controllers/footer'], (Bacon, FooterController) ->
       toggledTodo.onValue((t) -> t.completed = not t.completed)
 
       # Update view
-      newTodo.onValue          @el.find('#new-todo'), 'val', ''
-      todoListNotEmpty.onValue @el.find('#main'),     'toggle'
-      todoListNotEmpty.onValue @el.find('#footer'),   'toggle'
-
-      todos.onValue @el.find('#todo-list'), 'render'
+      newTodo.onValue          @el.find('#new-todo'),  'val', ''
+      todoListNotEmpty.onValue @el.find('#main'),      'toggle'
+      todoListNotEmpty.onValue @el.find('#footer'),    'toggle'
+      todos.onValue            @el.find('#todo-list'), 'render'
 
       # Kickstart
       todoBus.plug toggledTodo.map(todos)
