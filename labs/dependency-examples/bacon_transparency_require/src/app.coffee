@@ -9,20 +9,21 @@ define ['bacon', 'controllers/footer'], (Bacon, FooterController) ->
 
       todos            = todoBus.toProperty()
       todoListNotEmpty = todos.map((ts) -> ts.length > 0)
+      allCompleted     = todos.map((ts) -> ts.filter((t) -> !t.completed).length == 0)
 
-      newTodo = @el.find('#new-todo')
-        .asEventStream('keyup')
+      newTodo = @el.find('#new-todo').asEventStream('keyup')
         .filter((e) -> e.keyCode == ENTER_KEY)
         .map((e) -> todo: e.target.value.trim(), completed: false)
         .filter(({todo}) -> todo.length > 0)
 
-      deletedTodo = @el.find('#todo-list')
-        .asEventStream('click', '.destroy')
+      deletedTodo = @el.find('#todo-list').asEventStream('click', '.destroy')
         .map('.target.transparency.model')
 
-      toggledTodo = @el.find('#todo-list')
-        .asEventStream('click', '.toggle')
+      toggledTodo = @el.find('#todo-list').asEventStream('click', '.toggle')
         .map('.target.transparency.model')
+
+      toggleAll = @el.find('#toggle-all').asEventStream('click')
+        .map('.target.checked')
 
       #### Side effects
 
@@ -39,10 +40,17 @@ define ['bacon', 'controllers/footer'], (Bacon, FooterController) ->
       # Toggle todo
       toggledTodo.onValue((t) -> t.completed = not t.completed)
 
+      # Toggle all
+      toggleAll.map((completed) -> completed: completed)
+        .decorateWith('ts', todos)
+        .onValue(({ts, completed}) ->
+          todoBus.push ts.map((t) -> t.completed = completed; t))
+
       # Update view
-      newTodo.onValue          @el.find('#new-todo'),  'val', ''
-      todoListNotEmpty.onValue @el.find('#main'),      'toggle'
-      todoListNotEmpty.onValue @el.find('#footer'),    'toggle'
+      newTodo.onValue          @el.find('#new-todo'),   'val', ''
+      todoListNotEmpty.onValue @el.find('#main'),       'toggle'
+      todoListNotEmpty.onValue @el.find('#footer'),     'toggle'
+      allCompleted.onValue     @el.find('#toggle-all'), 'prop', 'checked'
       todos.onValue (todos) =>
         @el.find('#todo-list').render todos,
           # Ugly, fix Transparency
