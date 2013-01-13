@@ -1,7 +1,7 @@
 define ['bacon'], (Bacon) ->
   class FooterController
-    constructor: ({@el, @todoBus}) ->
-      todos                 = @todoBus.toProperty()
+    constructor: ({@el, todoBus}) ->
+      todos                 = todoBus.toProperty()
       openTodos             = todos.map((ts) -> ts.filter (t) -> !t.completed)
       completedTodos        = todos.map((ts) -> ts.filter (t) -> t.completed)
       completedListNotEmpty = completedTodos.map((ts) -> ts.length > 0)
@@ -12,7 +12,7 @@ define ['bacon'], (Bacon) ->
       @el.find('#clear-completed')
         .asEventStream('click')
         .map(openTodos)
-        .onValue @todoBus, 'push'
+        .onValue todoBus, 'push'
 
       # Show open todos count
       openTodos

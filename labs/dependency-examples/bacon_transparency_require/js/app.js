@@ -15,12 +15,16 @@
         var allCompleted, deleteTodo, editTodo, finishEdit, footerController, newTodo, todoBus, todoListNotEmpty, todos, toggleAll, toggleTodo,
           _this = this;
         this.el = _arg.el;
-        todoBus = new Bacon.Bus().log();
+        todoBus = new Bacon.Bus();
         footerController = new FooterController({
           el: this.el.find('#footer'),
           todoBus: todoBus
         });
-        todos = todoBus.toProperty();
+        todos = todoBus.map(function(ts) {
+          return ts.filter(function(t) {
+            return t.title !== "";
+          });
+        }).toProperty().log();
         todoListNotEmpty = todos.map(function(ts) {
           return ts.length > 0;
         });
@@ -29,6 +33,10 @@
             return !t.completed;
           }).length === 0;
         });
+        deleteTodo = this.el.find('#todo-list').asEventStream('click', '.todo .destroy');
+        toggleTodo = this.el.find('#todo-list').asEventStream('click', '.todo .toggle');
+        editTodo = this.el.find('#todo-list').asEventStream('dblclick', '.todo');
+        finishEdit = this.el.find('#todo-list').asEventStream('keyup', '.edit').filter(enterPressed);
         toggleAll = this.el.find('#toggle-all').asEventStream('click');
         newTodo = this.el.find('#new-todo').asEventStream('keyup').filter(enterPressed).map(function(e) {
           return {
@@ -37,21 +45,7 @@
               completed: false
             }
           };
-        }).filter(function(_arg1) {
-          var title;
-          title = _arg1.t.title;
-          return title !== "";
-        });
-        deleteTodo = this.el.find('#todo-list').asEventStream('click', '.todo .destroy');
-        toggleTodo = this.el.find('#todo-list').asEventStream('click', '.todo .toggle');
-        editTodo = this.el.find('#todo-list').asEventStream('dblclick', '.todo');
-        finishEdit = this.el.find('#todo-list').asEventStream('keyup', '.edit').filter(enterPressed);
-        editTodo.onValue(function(e) {
-          return $(e.currentTarget).addClass('editing').find('.edit').focus();
-        });
-        finishEdit.onValue(function(e) {
-          return e.target.transparency.model.title = e.target.value;
-        });
+        }).filter('.t.title');
         deleteTodo.map(function(e) {
           return {
             d: e.target.transparency.model
@@ -65,6 +59,12 @@
         });
         toggleTodo.map('.target.transparency.model').onValue(function(t) {
           return t.completed = !t.completed;
+        });
+        editTodo.onValue(function(e) {
+          return $(e.currentTarget).addClass('editing').find('.edit').focus();
+        });
+        finishEdit.onValue(function(e) {
+          return e.target.transparency.model.title = e.target.value;
         });
         toggleAll.map(function(e) {
           return {
@@ -106,11 +106,7 @@
           });
         });
         todoBus.plug(toggleTodo.map(todos));
-        todoBus.plug(finishEdit.map(todos).map(function(ts) {
-          return ts.filter(function(t) {
-            return t.title !== "";
-          });
-        }));
+        todoBus.plug(finishEdit.map(todos));
         todoBus.push([]);
       }
 

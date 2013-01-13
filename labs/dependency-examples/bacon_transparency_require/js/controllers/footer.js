@@ -5,10 +5,10 @@
     return FooterController = (function() {
 
       function FooterController(_arg) {
-        var completedListNotEmpty, completedTodos, openTodos, todos,
+        var completedListNotEmpty, completedTodos, openTodos, todoBus, todos,
           _this = this;
-        this.el = _arg.el, this.todoBus = _arg.todoBus;
-        todos = this.todoBus.toProperty();
+        this.el = _arg.el, todoBus = _arg.todoBus;
+        todos = todoBus.toProperty();
         openTodos = todos.map(function(ts) {
           return ts.filter(function(t) {
             return !t.completed;
@@ -22,7 +22,7 @@
         completedListNotEmpty = completedTodos.map(function(ts) {
           return ts.length > 0;
         });
-        this.el.find('#clear-completed').asEventStream('click').map(openTodos).onValue(this.todoBus, 'push');
+        this.el.find('#clear-completed').asEventStream('click').map(openTodos).onValue(todoBus, 'push');
         openTodos.map(function(ts) {
           return ("<strong>" + ts.length + "</strong> ") + (ts.length === 1 ? "item left" : "items left");
         }).onValue(this.el.find('#todo-count'), 'html');
