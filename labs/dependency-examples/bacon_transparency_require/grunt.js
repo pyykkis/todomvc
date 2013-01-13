@@ -16,7 +16,7 @@ module.exports = function(grunt) {
       }
     },
     watch: {
-      files: 'app/**/*.coffee',
+      files: 'src/**/*.coffee',
       tasks: 'coffee'
     }
   });
