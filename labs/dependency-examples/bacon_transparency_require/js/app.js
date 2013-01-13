@@ -1,6 +1,6 @@
 (function() {
 
-  define(['bacon'], function(Bacon) {
+  define(['bacon', 'controllers/footer'], function(Bacon, FooterController) {
     var TodoApp;
     return TodoApp = (function() {
       var ENTER_KEY;
@@ -8,10 +8,17 @@
       ENTER_KEY = 13;
 
       function TodoApp(_arg) {
-        var deletedTodo, newTodo, todoBus, todoListNotEmpty, todos, toggledTodo;
+        var deletedTodo, footerController, newTodo, todoBus, todoListNotEmpty, todos, toggledTodo;
         this.el = _arg.el;
         todoBus = new Bacon.Bus();
-        todos = todoBus.toProperty().log();
+        footerController = new FooterController({
+          el: this.el.find('#footer'),
+          todoBus: todoBus
+        });
+        todos = todoBus.toProperty();
+        todoListNotEmpty = todos.map(function(ts) {
+          return ts.length > 0;
+        });
         newTodo = this.el.find('#new-todo').asEventStream('keyup').filter(function(e) {
           return e.keyCode === ENTER_KEY;
         }).map(function(e) {
@@ -24,11 +31,8 @@
           todo = _arg1.todo;
           return todo.length > 0;
         });
-        deletedTodo = this.el.find('#todo-list .destroy').asEventStream('click').map('.target.transparency.model');
-        toggledTodo = this.el.find('#todo-list .toggle').asEventStream('click').map('.target.transparency.model');
-        todoListNotEmpty = todos.map(function(todos) {
-          return todos.length > 0;
-        });
+        deletedTodo = this.el.find('#todo-list').asEventStream('click', '.destroy').map('.target.transparency.model');
+        toggledTodo = this.el.find('#todo-list').asEventStream('click', '.toggle').map('.target.transparency.model');
         newTodo.map(function(t) {
           return {
             t: t
@@ -55,7 +59,8 @@
         newTodo.onValue(this.el.find('#new-todo'), 'val', '');
         todoListNotEmpty.onValue(this.el.find('#main'), 'toggle');
         todoListNotEmpty.onValue(this.el.find('#footer'), 'toggle');
-        toggledTodo.map(todos).merge(todos).onValue(this.el.find('#todo-list'), 'render');
+        todos.onValue(this.el.find('#todo-list'), 'render');
+        todoBus.plug(toggledTodo.map(todos));
         todoBus.push([]);
       }
 

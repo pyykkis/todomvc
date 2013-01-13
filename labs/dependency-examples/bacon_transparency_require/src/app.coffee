@@ -1,11 +1,14 @@
-define ['bacon'], (Bacon) ->
+define ['bacon', 'controllers/footer'], (Bacon, FooterController) ->
 
   class TodoApp
     ENTER_KEY = 13
 
     constructor: ({@el}) ->
-      todoBus = new Bacon.Bus()
-      todos   = todoBus.toProperty().log()
+      todoBus          = new Bacon.Bus()
+      footerController = new FooterController(el: @el.find('#footer'), todoBus: todoBus)
+
+      todos            = todoBus.toProperty()
+      todoListNotEmpty = todos.map((ts) -> ts.length > 0)
 
       newTodo = @el.find('#new-todo')
         .asEventStream('keyup')
@@ -13,17 +16,15 @@ define ['bacon'], (Bacon) ->
         .map((e) -> todo: e.target.value.trim(), completed: false)
         .filter(({todo}) -> todo.length > 0)
 
-      deletedTodo = @el.find('#todo-list .destroy')
-        .asEventStream('click')
+      deletedTodo = @el.find('#todo-list')
+        .asEventStream('click', '.destroy')
         .map('.target.transparency.model')
 
-      toggledTodo = @el.find('#todo-list .toggle')
-        .asEventStream('click')
+      toggledTodo = @el.find('#todo-list')
+        .asEventStream('click', '.toggle')
         .map('.target.transparency.model')
 
-      todoListNotEmpty = todos.map((todos) -> todos.length > 0)
-
-      # Side effects
+      #### Side effects
 
       # Add new todo to the list
       newTodo.map((t) -> t: t)
@@ -36,15 +37,15 @@ define ['bacon'], (Bacon) ->
         .onValue(({ts, d}) -> todoBus.push ts.filter (t) -> t != d)
 
       # Toggle todo
-      toggledTodo.onValue((t) -> t.completed = !t.completed)
+      toggledTodo.onValue((t) -> t.completed = not t.completed)
 
       # Update view
       newTodo.onValue          @el.find('#new-todo'), 'val', ''
       todoListNotEmpty.onValue @el.find('#main'),     'toggle'
       todoListNotEmpty.onValue @el.find('#footer'),   'toggle'
 
-      toggledTodo.map(todos)
-        .merge(todos).onValue @el.find('#todo-list'), 'render'
+      todos.onValue @el.find('#todo-list'), 'render'
 
       # Kickstart
+      todoBus.plug toggledTodo.map(todos)
       todoBus.push []
