@@ -10,7 +10,7 @@
       function TodoApp(_arg) {
         var deletedTodo, footerController, newTodo, todoBus, todoListNotEmpty, todos, toggledTodo;
         this.el = _arg.el;
-        todoBus = new Bacon.Bus();
+        todoBus = new Bacon.Bus().log();
         footerController = new FooterController({
           el: this.el.find('#footer'),
           todoBus: todoBus

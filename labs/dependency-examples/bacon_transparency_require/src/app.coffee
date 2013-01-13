@@ -4,7 +4,7 @@ define ['bacon', 'controllers/footer'], (Bacon, FooterController) ->
     ENTER_KEY = 13
 
     constructor: ({@el}) ->
-      todoBus          = new Bacon.Bus()
+      todoBus          = new Bacon.Bus().log()
       footerController = new FooterController(el: @el.find('#footer'), todoBus: todoBus)
 
       todos            = todoBus.toProperty()
