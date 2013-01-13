@@ -7,10 +7,8 @@ define ['bacon'], (Bacon) ->
        # Events and Properties
       todos = new Bacon.Bus().log()
 
-      keyup   = @el.find('#new-todo').asEventStream('keyup')
-      enter   = keyup.filter((e) -> e.keyCode == ENTER_KEY)
-      newTodo = keyup.toProperty()
-        .sampledBy(enter)
+      newTodo = @el.find('#new-todo').asEventStream('keyup')
+        .filter((e) -> e.keyCode == ENTER_KEY)
         .map((e) -> todo: e.target.value.trim())
         .filter(({todo}) -> todo.length > 0)
 

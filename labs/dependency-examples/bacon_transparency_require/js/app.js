@@ -8,14 +8,12 @@
       ENTER_KEY = 13;
 
       function TodoApp(_arg) {
-        var enter, keyup, newTodo, showTodos, todos;
+        var newTodo, showTodos, todos;
         this.el = _arg.el;
         todos = new Bacon.Bus().log();
-        keyup = this.el.find('#new-todo').asEventStream('keyup');
-        enter = keyup.filter(function(e) {
+        newTodo = this.el.find('#new-todo').asEventStream('keyup').filter(function(e) {
           return e.keyCode === ENTER_KEY;
-        });
-        newTodo = keyup.toProperty().sampledBy(enter).map(function(e) {
+        }).map(function(e) {
           return {
             todo: e.target.value.trim()
           };
