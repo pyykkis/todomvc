@@ -3,12 +3,16 @@
   define(['bacon', 'controllers/footer'], function(Bacon, FooterController) {
     var TodoApp;
     return TodoApp = (function() {
-      var ENTER_KEY;
+      var ENTER_KEY, enterPressed;
 
       ENTER_KEY = 13;
 
+      enterPressed = function(e) {
+        return e.keyCode === ENTER_KEY;
+      };
+
       function TodoApp(_arg) {
-        var allCompleted, deleteTodo, footerController, newTodo, todoBus, todoListNotEmpty, todos, toggleAll, toggleTodo,
+        var allCompleted, deleteTodo, editTodo, finishEdit, footerController, newTodo, todoBus, todoListNotEmpty, todos, toggleAll, toggleTodo,
           _this = this;
         this.el = _arg.el;
         todoBus = new Bacon.Bus().log();
@@ -25,27 +29,28 @@
             return !t.completed;
           }).length === 0;
         });
-        deleteTodo = this.el.find('#todo-list').asEventStream('click', '.destroy');
-        toggleTodo = this.el.find('#todo-list').asEventStream('click', '.toggle');
         toggleAll = this.el.find('#toggle-all').asEventStream('click');
-        newTodo = this.el.find('#new-todo').asEventStream('keyup').filter(function(e) {
-          return e.keyCode === ENTER_KEY;
-        }).map(function(e) {
+        newTodo = this.el.find('#new-todo').asEventStream('keyup').filter(enterPressed).map(function(e) {
           return {
             t: {
-              todo: e.target.value.trim(),
+              title: e.target.value.trim(),
               completed: false
             }
           };
         }).filter(function(_arg1) {
-          var todo;
-          todo = _arg1.t.todo;
-          return todo.length > 0;
+          var title;
+          title = _arg1.t.title;
+          return title !== "";
         });
-        newTodo.decorateWith('ts', todos).onValue(function(_arg1) {
-          var t, ts;
-          ts = _arg1.ts, t = _arg1.t;
-          return todoBus.push(ts.concat([t]));
+        deleteTodo = this.el.find('#todo-list').asEventStream('click', '.todo .destroy');
+        toggleTodo = this.el.find('#todo-list').asEventStream('click', '.todo .toggle');
+        editTodo = this.el.find('#todo-list').asEventStream('dblclick', '.todo');
+        finishEdit = this.el.find('#todo-list').asEventStream('keyup', '.edit').filter(enterPressed);
+        editTodo.onValue(function(e) {
+          return $(e.currentTarget).addClass('editing').find('.edit').focus();
+        });
+        finishEdit.onValue(function(e) {
+          return e.target.transparency.model.title = e.target.value;
         });
         deleteTodo.map(function(e) {
           return {
@@ -73,12 +78,26 @@
             return t;
           }));
         });
+        newTodo.decorateWith('ts', todos).onValue(function(_arg1) {
+          var t, ts;
+          ts = _arg1.ts, t = _arg1.t;
+          return todoBus.push(ts.concat([t]));
+        });
         newTodo.onValue(this.el.find('#new-todo'), 'val', '');
         todoListNotEmpty.onValue(this.el.find('#main'), 'toggle');
         todoListNotEmpty.onValue(this.el.find('#footer'), 'toggle');
         allCompleted.onValue(this.el.find('#toggle-all'), 'prop', 'checked');
         todos.onValue(function(todos) {
           return _this.el.find('#todo-list').render(todos, {
+            todo: {
+              'class': function(p) {
+                if (this.completed) {
+                  return "todo completed";
+                } else {
+                  return "todo";
+                }
+              }
+            },
             toggle: {
               checked: function(p) {
                 $(p.element).prop('checked', this.completed);
@@ -87,6 +106,11 @@
           });
         });
         todoBus.plug(toggleTodo.map(todos));
+        todoBus.plug(finishEdit.map(todos).map(function(ts) {
+          return ts.filter(function(t) {
+            return t.title !== "";
+          });
+        }));
         todoBus.push([]);
       }
 
