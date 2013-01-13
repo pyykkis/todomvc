@@ -10,15 +10,19 @@
       function TodoApp(_arg) {
         var enter, keyup, newTodo, showTodos, todos;
         this.el = _arg.el;
-        todos = new Bacon.Bus();
+        todos = new Bacon.Bus().log();
         keyup = this.el.find('#new-todo').asEventStream('keyup');
         enter = keyup.filter(function(e) {
           return e.keyCode === ENTER_KEY;
         });
         newTodo = keyup.toProperty().sampledBy(enter).map(function(e) {
-          return e.target.value.trim();
-        }).filter(function(val) {
-          return val.length > 0;
+          return {
+            todo: e.target.value.trim()
+          };
+        }).filter(function(_arg1) {
+          var todo;
+          todo = _arg1.todo;
+          return todo.length > 0;
         });
         showTodos = todos.map(function(todos) {
           return todos.length > 0;
@@ -32,10 +36,11 @@
           ts = _arg1.ts, t = _arg1.t;
           return todos.push(ts.concat([t]));
         });
+        todos.onValue(this.el.find('#todo-list'), 'render');
         showTodos.onValue(this.el.find('#main'), 'toggle');
         showTodos.onValue(this.el.find('#footer'), 'toggle');
+        newTodo.onValue(this.el.find('#new-todo'), 'val', '');
         todos.push([]);
-        todos.log();
       }
 
       return TodoApp;
