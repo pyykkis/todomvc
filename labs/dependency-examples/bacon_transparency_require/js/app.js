@@ -1,7 +1,61 @@
 (function() {
+  var __slice = [].slice,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(['bacon', 'controllers/footer'], function(Bacon, FooterController) {
-    var TodoApp;
+  define(['bacon', 'backbone', 'lodash', 'controllers/footer'], function(Bacon, Backbone, _, FooterController) {
+    var Todo, TodoApp, TodoList;
+    Backbone.EventStream = {
+      asEventStream: function(eventName, eventTransformer) {
+        var eventTarget;
+        if (eventTransformer == null) {
+          eventTransformer = _.identity;
+        }
+        eventTarget = this;
+        return new Bacon.EventStream(function(sink) {
+          var handler, unbind;
+          handler = function() {
+            var args, reply;
+            args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+            reply = sink(new Bacon.Next(eventTransformer.apply(null, args)));
+            if (reply === Bacon.noMore) {
+              return unbind();
+            }
+          };
+          unbind = function() {
+            return eventTarget.off(eventName, handler);
+          };
+          eventTarget.on(eventName, handler, this);
+          return unbind;
+        });
+      }
+    };
+    _.extend(Backbone.Model.prototype, Backbone.EventStream);
+    _.extend(Backbone.Collection.prototype, Backbone.EventStream);
+    Todo = (function(_super) {
+
+      __extends(Todo, _super);
+
+      function Todo() {
+        return Todo.__super__.constructor.apply(this, arguments);
+      }
+
+      return Todo;
+
+    })(Backbone.Model);
+    TodoList = (function(_super) {
+
+      __extends(TodoList, _super);
+
+      function TodoList() {
+        return TodoList.__super__.constructor.apply(this, arguments);
+      }
+
+      TodoList.prototype.model = Todo;
+
+      return TodoList;
+
+    })(Backbone.Collection);
     return TodoApp = (function() {
       var ENTER_KEY, enterPressed;
 
@@ -35,7 +89,10 @@
         });
         deleteTodo = this.el.find('#todo-list').asEventStream('click', '.todo .destroy');
         toggleTodo = this.el.find('#todo-list').asEventStream('click', '.todo .toggle');
-        editTodo = this.el.find('#todo-list').asEventStream('dblclick', '.todo');
+        editTodo = this.el.find('#todo-list').asEventStream('dblclick', '.todo', function(e) {
+          console.log(e);
+          return e;
+        }).log();
         finishEdit = this.el.find('#todo-list').asEventStream('keyup', '.edit').filter(enterPressed);
         toggleAll = this.el.find('#toggle-all').asEventStream('click');
         newTodo = this.el.find('#new-todo').asEventStream('keyup').filter(enterPressed).map(function(e) {

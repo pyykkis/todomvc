@@ -1,4 +1,24 @@
-define ['bacon', 'controllers/footer'], (Bacon, FooterController) ->
+define ['bacon', 'backbone', 'lodash', 'controllers/footer'], (Bacon, Backbone, _, FooterController) ->
+
+  Backbone.EventStream =
+    asEventStream: (eventName, eventTransformer = _.identity) ->
+      eventTarget = this
+      new Bacon.EventStream (sink) ->
+        handler = (args...) ->
+          reply = sink(new Bacon.Next(eventTransformer args...))
+          if reply == Bacon.noMore
+            unbind()
+
+        unbind = -> eventTarget.off(eventName, handler)
+        eventTarget.on(eventName, handler, this)
+        unbind
+
+  _.extend Backbone.Model.prototype, Backbone.EventStream
+  _.extend Backbone.Collection.prototype, Backbone.EventStream
+
+  class Todo extends Backbone.Model
+  class TodoList extends Backbone.Collection
+    model: Todo
 
   class TodoApp
     ENTER_KEY    = 13
@@ -16,7 +36,7 @@ define ['bacon', 'controllers/footer'], (Bacon, FooterController) ->
       # EventStreams
       deleteTodo = @el.find('#todo-list').asEventStream('click',    '.todo .destroy')
       toggleTodo = @el.find('#todo-list').asEventStream('click',    '.todo .toggle')
-      editTodo   = @el.find('#todo-list').asEventStream('dblclick', '.todo')
+      editTodo   = @el.find('#todo-list').asEventStream('dblclick', '.todo', (e) -> console.log e; e).log()
       finishEdit = @el.find('#todo-list').asEventStream('keyup',    '.edit').filter(enterPressed)
       toggleAll  = @el.find('#toggle-all').asEventStream('click')
       newTodo    = @el.find('#new-todo').asEventStream('keyup')
