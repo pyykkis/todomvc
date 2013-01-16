@@ -1,25 +1,31 @@
 define ['bacon'], (Bacon) ->
   class FooterController
-    constructor: ({@el, todoBus}) ->
-      todos                 = todoBus.toProperty()
-      openTodos             = todos.map((ts) -> ts.filter (t) -> !t.completed)
-      completedTodos        = todos.map((ts) -> ts.filter (t) -> t.completed)
-      completedListNotEmpty = completedTodos.map((ts) -> ts.length > 0)
 
-      # Side effects
+    $: (args...) -> @el.find args...
 
-      # Clear completed todos
-      @el.find('#clear-completed')
-        .asEventStream('click')
-        .map(openTodos)
-        .onValue todoBus, 'push'
+    constructor: ({@el, model}) ->
 
-      # Show open todos count
+      # Properties
+      modelChanges          = model.asEventStream("add remove reset change")
+      todos                 = modelChanges.map -> model
+      openTodos             = modelChanges.map model, 'open'
+      completedTodos        = modelChanges.map model, 'completed'
+      completedListNotEmpty = modelChanges.map -> model.completed().length > 0
+
+      # EventStreams
+      clearCompleted = @$('#clear-completed').asEventStream('click')
+
+      clearCompleted
+        .map(model, 'completed')
+        .onValue(model, 'remove')
+
       openTodos
         .map((ts) -> "<strong>#{ts.length}</strong> " + if ts.length == 1 then "item left" else "items left")
-        .onValue @el.find('#todo-count'), 'html'
+        .onValue @$('#todo-count'), 'html'
 
-      # Show completed todos count
-      completedListNotEmpty.onValue @el.find('#clear-completed'), 'toggle'
-      completedTodos.onValue (completedTodos) =>
-        @el.find('#clear-completed').text "Clear completed (#{completedTodos.length})"
+
+      completedListNotEmpty
+        .onValue @$('#clear-completed'), 'toggle'
+
+      completedTodos
+        .onValue (completedTodos) => @$('#clear-completed').text "Clear completed (#{completedTodos.length})"

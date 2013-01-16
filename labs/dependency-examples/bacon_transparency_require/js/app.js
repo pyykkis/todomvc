@@ -1,44 +1,27 @@
 (function() {
-  var __slice = [].slice,
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    __slice = [].slice;
 
   define(['bacon', 'backbone', 'lodash', 'controllers/footer'], function(Bacon, Backbone, _, FooterController) {
     var Todo, TodoApp, TodoList;
-    Backbone.EventStream = {
-      asEventStream: function(eventName, eventTransformer) {
-        var eventTarget;
-        if (eventTransformer == null) {
-          eventTransformer = _.identity;
-        }
-        eventTarget = this;
-        return new Bacon.EventStream(function(sink) {
-          var handler, unbind;
-          handler = function() {
-            var args, reply;
-            args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-            reply = sink(new Bacon.Next(eventTransformer.apply(null, args)));
-            if (reply === Bacon.noMore) {
-              return unbind();
-            }
-          };
-          unbind = function() {
-            return eventTarget.off(eventName, handler);
-          };
-          eventTarget.on(eventName, handler, this);
-          return unbind;
-        });
-      }
-    };
-    _.extend(Backbone.Model.prototype, Backbone.EventStream);
-    _.extend(Backbone.Collection.prototype, Backbone.EventStream);
     Todo = (function(_super) {
 
       __extends(Todo, _super);
 
       function Todo() {
+        this.toggle = __bind(this.toggle, this);
         return Todo.__super__.constructor.apply(this, arguments);
       }
+
+      Todo.prototype.defaults = {
+        completed: false
+      };
+
+      Todo.prototype.toggle = function() {
+        return this.set('completed', !this.get('completed'));
+      };
 
       return Todo;
 
@@ -53,6 +36,28 @@
 
       TodoList.prototype.model = Todo;
 
+      TodoList.prototype.allCompleted = function() {
+        return this.every(function(t) {
+          return t.get('completed');
+        });
+      };
+
+      TodoList.prototype.toggleAll = function(completed) {
+        return this.invoke('set', 'completed', completed);
+      };
+
+      TodoList.prototype.open = function() {
+        return this.reject(function(t) {
+          return t.get('completed');
+        });
+      };
+
+      TodoList.prototype.completed = function() {
+        return this.filter(function(t) {
+          return t.get('completed');
+        });
+      };
+
       return TodoList;
 
     })(Backbone.Collection);
@@ -65,87 +70,66 @@
         return e.keyCode === ENTER_KEY;
       };
 
+      TodoApp.prototype.$ = function() {
+        var args, _ref;
+        args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        return (_ref = this.el).find.apply(_ref, args);
+      };
+
       function TodoApp(_arg) {
-        var allCompleted, deleteTodo, editTodo, finishEdit, footerController, newTodo, todoBus, todoListNotEmpty, todos, toggleAll, toggleTodo,
+        var allCompleted, deleteTodo, editTodo, finishEdit, footerController, model, modelChanges, newTodo, todoIds, todoListNotEmpty, todos, toggleAll, toggleTodo,
           _this = this;
         this.el = _arg.el;
-        todoBus = new Bacon.Bus();
+        todoIds = 0;
+        model = new TodoList();
         footerController = new FooterController({
-          el: this.el.find('#footer'),
-          todoBus: todoBus
+          el: this.$('#footer'),
+          model: model
         });
-        todos = todoBus.map(function(ts) {
-          return ts.filter(function(t) {
-            return t.title !== "";
-          });
-        }).toProperty().log();
-        todoListNotEmpty = todos.map(function(ts) {
-          return ts.length > 0;
+        modelChanges = model.asEventStream("add remove reset change");
+        todos = modelChanges.map(function() {
+          return model;
         });
-        allCompleted = todos.map(function(ts) {
-          return ts.filter(function(t) {
-            return !t.completed;
-          }).length === 0;
+        todoListNotEmpty = modelChanges.map(function() {
+          return model.length > 0;
         });
-        deleteTodo = this.el.find('#todo-list').asEventStream('click', '.todo .destroy');
-        toggleTodo = this.el.find('#todo-list').asEventStream('click', '.todo .toggle');
-        editTodo = this.el.find('#todo-list').asEventStream('dblclick', '.todo', function(e) {
-          console.log(e);
-          return e;
-        }).log();
-        finishEdit = this.el.find('#todo-list').asEventStream('keyup', '.edit').filter(enterPressed);
-        toggleAll = this.el.find('#toggle-all').asEventStream('click');
-        newTodo = this.el.find('#new-todo').asEventStream('keyup').filter(enterPressed).map(function(e) {
-          return {
-            t: {
-              title: e.target.value.trim(),
-              completed: false
-            }
-          };
-        }).filter('.t.title');
-        deleteTodo.map(function(e) {
-          return {
-            d: e.target.transparency.model
-          };
-        }).decorateWith('ts', todos).onValue(function(_arg1) {
-          var d, ts;
-          ts = _arg1.ts, d = _arg1.d;
-          return todoBus.push(ts.filter(function(t) {
-            return t !== d;
-          }));
-        });
-        toggleTodo.map('.target.transparency.model').onValue(function(t) {
-          return t.completed = !t.completed;
-        });
+        allCompleted = modelChanges.map(model, 'allCompleted');
+        toggleAll = this.$('#toggle-all').asEventStream('click');
+        toggleTodo = this.$('#todo-list').asEventStream('click', '.todo .toggle');
+        deleteTodo = this.$('#todo-list').asEventStream('click', '.todo .destroy');
+        editTodo = this.$('#todo-list').asEventStream('dblclick', '.todo');
+        finishEdit = this.$('#todo-list').asEventStream('keyup', '.edit').filter(enterPressed);
+        newTodo = this.$('#new-todo').asEventStream('keyup').filter(enterPressed).map(function(e) {
+          return e.target.value.trim();
+        }).filter(_.identity);
+        toggleAll.map('.target.checked').onValue(model, 'toggleAll');
+        toggleTodo.map('.target.transparency.model').map(model, 'get').onValue('.toggle');
+        deleteTodo.map('.target.transparency.model').map(model, 'get').onValue(model, 'remove');
         editTodo.onValue(function(e) {
           return $(e.currentTarget).addClass('editing').find('.edit').focus();
         });
-        finishEdit.onValue(function(e) {
-          return e.target.transparency.model.title = e.target.value;
-        });
-        toggleAll.map(function(e) {
+        finishEdit.map(function(e) {
           return {
-            completed: e.target.checked
+            todo: model.get(e.target.transparency.model),
+            title: e.target.value
           };
-        }).decorateWith('ts', todos).onValue(function(_arg1) {
-          var completed, ts;
-          ts = _arg1.ts, completed = _arg1.completed;
-          return todoBus.push(ts.map(function(t) {
-            t.completed = completed;
-            return t;
-          }));
+        }).onValue(function(_arg1) {
+          var title, todo;
+          todo = _arg1.todo, title = _arg1.title;
+          return todo.set('title', title);
         });
-        newTodo.decorateWith('ts', todos).onValue(function(_arg1) {
-          var t, ts;
-          ts = _arg1.ts, t = _arg1.t;
-          return todoBus.push(ts.concat([t]));
-        });
-        newTodo.onValue(this.el.find('#new-todo'), 'val', '');
-        todoListNotEmpty.onValue(this.el.find('#main'), 'toggle');
-        todoListNotEmpty.onValue(this.el.find('#footer'), 'toggle');
-        allCompleted.onValue(this.el.find('#toggle-all'), 'prop', 'checked');
+        newTodo.map(function(title) {
+          return new Todo({
+            title: title,
+            id: todoIds++
+          });
+        }).onValue(model, 'add');
+        newTodo.onValue(this.$('#new-todo'), 'val', '');
+        todoListNotEmpty.onValue(this.$('#main'), 'toggle');
+        todoListNotEmpty.onValue(this.$('#footer'), 'toggle');
+        allCompleted.onValue(this.$('#toggle-all'), 'prop', 'checked');
         todos.onValue(function(todos) {
-          return _this.el.find('#todo-list').render(todos, {
+          return _this.$('#todo-list').render(todos.toJSON(), {
             todo: {
               'class': function(p) {
                 if (this.completed) {
@@ -162,9 +146,7 @@
             }
           });
         });
-        todoBus.plug(toggleTodo.map(todos));
-        todoBus.plug(finishEdit.map(todos));
-        todoBus.push([]);
+        model.reset();
       }
 
       return TodoApp;

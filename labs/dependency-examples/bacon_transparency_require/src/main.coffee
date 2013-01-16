@@ -1,10 +1,11 @@
 require.config
   paths:
-    'jquery':       '../../../../assets/jquery.min'
-    'backbone':     'lib/backbone-min'
-    'lodash':       'lib/lodash.min'
-    'bacon':        'lib/bacon.min'
-    'transparency': 'lib/transparency.min'
+    'jquery':               '../../../../assets/jquery.min'
+    'backbone':             'lib/backbone-min'
+    'backbone.eventstream': 'lib/backbone.eventstream'
+    'lodash':               'lib/lodash.min'
+    'bacon':                'lib/bacon.min'
+    'transparency':         'lib/transparency.min'
   shim:
     bacon:
       deps: ['jquery']
@@ -14,9 +15,13 @@ require.config
       exports: 'Backbone'
     lodash: exports: '_'
 
-require ['jquery', 'transparency', 'app'], ($, Transparency, TodoApp) ->
+require ['jquery', 'transparency', 'backbone', 'lodash', 'app', 'backbone.eventstream'], ($, Transparency, Backbone, _, TodoApp) ->
 
-  # Register Transparency as a jQuery plugin
-  Transparency.register $
+    # Extend Backbone Models and Collections to act as a Bacon EventStreams
+    _.extend Backbone.Model.prototype,      Backbone.EventStream
+    _.extend Backbone.Collection.prototype, Backbone.EventStream
 
-  $ -> new TodoApp(el: $('#todoapp'))
+    # Register Transparency as a jQuery plugin
+    Transparency.register $
+
+    $ -> new TodoApp(el: $('#todoapp'))
