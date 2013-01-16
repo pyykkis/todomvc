@@ -33,7 +33,7 @@ define ['bacon', 'backbone', 'lodash', 'controllers/footer'], (Bacon, Backbone, 
       toggleAll  = @$('#toggle-all').asEventStream('click')
       toggleTodo = @$('#todo-list').asEventStream('click', '.todo .toggle')
       deleteTodo = @$('#todo-list').asEventStream('click', '.todo .destroy')
-      editTodo   = @$('#todo-list').asEventStream('dblclick', '.todo')
+      editTodo   = @$('#todo-list').asEventStream('dblclick', 'label.todo')
       finishEdit = @$('#todo-list').asEventStream('keyup', '.edit').filter(enterPressed)
       newTodo    = @$('#new-todo').asEventStream('keyup')
         .filter(enterPressed)
@@ -51,7 +51,6 @@ define ['bacon', 'backbone', 'lodash', 'controllers/footer'], (Bacon, Backbone, 
 
       deleteTodo
         .map('.target.transparency.model')
-        .map(model, 'get')
         .onValue(model, 'remove')
 
       editTodo

@@ -91,7 +91,7 @@
         toggleAll = this.$('#toggle-all').asEventStream('click');
         toggleTodo = this.$('#todo-list').asEventStream('click', '.todo .toggle');
         deleteTodo = this.$('#todo-list').asEventStream('click', '.todo .destroy');
-        editTodo = this.$('#todo-list').asEventStream('dblclick', '.todo');
+        editTodo = this.$('#todo-list').asEventStream('dblclick', 'label.todo');
         finishEdit = this.$('#todo-list').asEventStream('keyup', '.edit').filter(enterPressed);
         newTodo = this.$('#new-todo').asEventStream('keyup').filter(enterPressed).map(function(e) {
           return e.target.value.trim();
@@ -100,7 +100,7 @@
         toggleTodo.map('.target.transparency.model').map(model, 'get').onValue(function(t) {
           return t.set('completed', !t.get('completed'));
         });
-        deleteTodo.map('.target.transparency.model').map(model, 'get').onValue(model, 'remove');
+        deleteTodo.map('.target.transparency.model').onValue(model, 'remove');
         editTodo.onValue(function(e) {
           return $(e.currentTarget).addClass('editing').find('.edit').focus();
         });
