@@ -1,6 +1,5 @@
 (function() {
-  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    __hasProp = {}.hasOwnProperty,
+  var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __slice = [].slice;
 
@@ -11,16 +10,11 @@
       __extends(Todo, _super);
 
       function Todo() {
-        this.toggle = __bind(this.toggle, this);
         return Todo.__super__.constructor.apply(this, arguments);
       }
 
       Todo.prototype.defaults = {
         completed: false
-      };
-
-      Todo.prototype.toggle = function() {
-        return this.set('completed', !this.get('completed'));
       };
 
       return Todo;
@@ -103,7 +97,9 @@
           return e.target.value.trim();
         }).filter(_.identity);
         toggleAll.map('.target.checked').onValue(model, 'toggleAll');
-        toggleTodo.map('.target.transparency.model').map(model, 'get').onValue('.toggle');
+        toggleTodo.map('.target.transparency.model').map(model, 'get').onValue(function(t) {
+          return t.set('completed', !t.get('completed'));
+        });
         deleteTodo.map('.target.transparency.model').map(model, 'get').onValue(model, 'remove');
         editTodo.onValue(function(e) {
           return $(e.currentTarget).addClass('editing').find('.edit').focus();

@@ -3,8 +3,6 @@ define ['bacon', 'backbone', 'lodash', 'controllers/footer'], (Bacon, Backbone, 
   class Todo extends Backbone.Model
     defaults: completed: false
 
-    toggle: () => @set 'completed', !@get('completed')
-
   class TodoList extends Backbone.Collection
     model: Todo
 
@@ -49,7 +47,7 @@ define ['bacon', 'backbone', 'lodash', 'controllers/footer'], (Bacon, Backbone, 
       toggleTodo
         .map('.target.transparency.model')
         .map(model, 'get')
-        .onValue('.toggle')
+        .onValue((t) -> t.set 'completed', !t.get 'completed')
 
       deleteTodo
         .map('.target.transparency.model')
