@@ -1,16 +1,14 @@
-define ['bacon', 'models/todo', 'models/todo_list', 'controllers/footer'], (Bacon, Todo, TodoList, FooterController) ->
+define ['backbone', 'bacon', 'models/todo', 'models/todo_list', 'controllers/footer'], (Backbone, Bacon, Todo, TodoList, FooterController) ->
 
-  class TodoApp
+  class TodoApp extends Backbone.View
     ENTER_KEY    = 13
     enterPressed = (e)     -> e.keyCode == ENTER_KEY
     value        = (e)     -> e.target.value.trim()
     getTodo      = (model) -> (e) -> model.get e.target.transparency.model
 
-    $: (args...) -> @el.find args...
-
-    constructor: ({@el}) ->
+    initialize: ->
       todoList         = new TodoList()
-      footerController = new FooterController(el: @$('#footer'), todoList: todoList)
+      footerController = new FooterController(el: @$('#footer'), collection: todoList)
 
       # EventStreams
       toggleAll  = @$('#toggle-all').asEventStream('click')
@@ -45,7 +43,7 @@ define ['bacon', 'models/todo', 'models/todo_list', 'controllers/footer'], (Baco
       newTodo
         .onValue((title) -> todoList.create title: title)
 
-      newTodo.onValue                 @$('#new-todo'),      'val', ''
+      newTodo.onValue               @$('#new-todo'),      'val', ''
       todoList.notEmpty.onValue     @$('#main, #footer'), 'toggle'
       todoList.allCompleted.onValue @$('#toggle-all'),    'prop', 'checked'
 

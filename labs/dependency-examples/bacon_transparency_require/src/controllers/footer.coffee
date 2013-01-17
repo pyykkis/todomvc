@@ -1,9 +1,9 @@
-define ['bacon', 'underscore'], (Bacon, _) ->
-  class FooterController
+define ['backbone', 'bacon', 'underscore'], (Backbone, Bacon, _) ->
 
-    $: (args...) -> @el.find args...
+  class FooterController extends Backbone.View
 
-    constructor: ({@el, todoList}) ->
+    initialize: ->
+      todoList       = @collection
       clearCompleted = @$('#clear-completed').asEventStream('click')
 
       clearCompleted

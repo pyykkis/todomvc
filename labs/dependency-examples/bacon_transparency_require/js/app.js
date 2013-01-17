@@ -1,10 +1,17 @@
 (function() {
-  var __slice = [].slice;
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(['bacon', 'models/todo', 'models/todo_list', 'controllers/footer'], function(Bacon, Todo, TodoList, FooterController) {
+  define(['backbone', 'bacon', 'models/todo', 'models/todo_list', 'controllers/footer'], function(Backbone, Bacon, Todo, TodoList, FooterController) {
     var TodoApp;
-    return TodoApp = (function() {
+    return TodoApp = (function(_super) {
       var ENTER_KEY, enterPressed, getTodo, value;
+
+      __extends(TodoApp, _super);
+
+      function TodoApp() {
+        return TodoApp.__super__.constructor.apply(this, arguments);
+      }
 
       ENTER_KEY = 13;
 
@@ -22,20 +29,13 @@
         };
       };
 
-      TodoApp.prototype.$ = function() {
-        var args, _ref;
-        args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        return (_ref = this.el).find.apply(_ref, args);
-      };
-
-      function TodoApp(_arg) {
+      TodoApp.prototype.initialize = function() {
         var deleteTodo, editTodo, finishEdit, footerController, newTodo, todoList, toggleAll, toggleTodo,
           _this = this;
-        this.el = _arg.el;
         todoList = new TodoList();
         footerController = new FooterController({
           el: this.$('#footer'),
-          todoList: todoList
+          collection: todoList
         });
         toggleAll = this.$('#toggle-all').asEventStream('click');
         toggleTodo = this.$('#todo-list').asEventStream('click', '.toggle');
@@ -60,9 +60,9 @@
             todo: getTodo(todoList)(e),
             title: value(e)
           };
-        }).onValue(function(_arg1) {
+        }).onValue(function(_arg) {
           var title, todo;
-          todo = _arg1.todo, title = _arg1.title;
+          todo = _arg.todo, title = _arg.title;
           return todo.save({
             title: title
           });
@@ -93,12 +93,12 @@
             }
           });
         });
-        todoList.fetch();
-      }
+        return todoList.fetch();
+      };
 
       return TodoApp;
 
-    })();
+    })(Backbone.View);
   });
 
 }).call(this);
