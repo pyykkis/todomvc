@@ -2,8 +2,9 @@ require.config
   paths:
     'jquery':               '../../../../assets/jquery.min'
     'backbone':             'lib/backbone-min'
+    'localstorage':         'lib/backbone.localStorage-min'
     'backbone.eventstream': 'lib/backbone.eventstream'
-    'lodash':               'lib/lodash.min'
+    'underscore':           'lib/underscore-min'
     'bacon':                'lib/bacon.min'
     'transparency':         'lib/transparency.min'
   shim:
@@ -11,11 +12,12 @@ require.config
       deps: ['jquery']
       exports: 'Bacon'
     backbone:
-      deps: ['lodash']
+      deps: ['underscore']
       exports: 'Backbone'
-    lodash: exports: '_'
+    underscore: exports: '_'
 
-require ['jquery', 'transparency', 'backbone', 'lodash', 'app', 'backbone.eventstream'], ($, Transparency, Backbone, _, TodoApp) ->
+require ['jquery', 'transparency', 'backbone', 'underscore', 'app', 'backbone.eventstream'],
+  ($, Transparency, Backbone, _, TodoApp) ->
 
     # Extend Backbone Models and Collections to act as a Bacon EventStreams
     _.extend Backbone.Model.prototype,      Backbone.EventStream

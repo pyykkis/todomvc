@@ -1,7 +1,7 @@
 (function() {
   var __slice = [].slice;
 
-  define(['bacon'], function(Bacon) {
+  define(['bacon', 'underscore'], function(Bacon, _) {
     var FooterController;
     return FooterController = (function() {
 
@@ -12,25 +12,18 @@
       };
 
       function FooterController(_arg) {
-        var clearCompleted, completedListNotEmpty, completedTodos, model, modelChanges, openTodos, todos,
+        var clearCompleted, todoList,
           _this = this;
-        this.el = _arg.el, model = _arg.model;
-        modelChanges = model.asEventStream("add remove reset change");
-        todos = modelChanges.map(function() {
-          return model;
-        });
-        openTodos = modelChanges.map(model, 'open');
-        completedTodos = modelChanges.map(model, 'completed');
-        completedListNotEmpty = modelChanges.map(function() {
-          return model.completed().length > 0;
-        });
+        this.el = _arg.el, todoList = _arg.todoList;
         clearCompleted = this.$('#clear-completed').asEventStream('click');
-        clearCompleted.map(model, 'completed').onValue(model, 'remove');
-        openTodos.map(function(ts) {
+        clearCompleted.map(todoList.completed).onValue(function(ts) {
+          return _.invoke(ts, 'destroy');
+        });
+        todoList.open.map(function(ts) {
           return ("<strong>" + ts.length + "</strong> ") + (ts.length === 1 ? "item left" : "items left");
         }).onValue(this.$('#todo-count'), 'html');
-        completedListNotEmpty.onValue(this.$('#clear-completed'), 'toggle');
-        completedTodos.onValue(function(completedTodos) {
+        todoList.someCompleted.onValue(this.$('#clear-completed'), 'toggle');
+        todoList.completed.onValue(function(completedTodos) {
           return _this.$('#clear-completed').text("Clear completed (" + completedTodos.length + ")");
         });
       }

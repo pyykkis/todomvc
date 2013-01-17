@@ -1,31 +1,21 @@
-define ['bacon'], (Bacon) ->
+define ['bacon', 'underscore'], (Bacon, _) ->
   class FooterController
 
     $: (args...) -> @el.find args...
 
-    constructor: ({@el, model}) ->
-
-      # Properties
-      modelChanges          = model.asEventStream("add remove reset change")
-      todos                 = modelChanges.map -> model
-      openTodos             = modelChanges.map model, 'open'
-      completedTodos        = modelChanges.map model, 'completed'
-      completedListNotEmpty = modelChanges.map -> model.completed().length > 0
-
-      # EventStreams
+    constructor: ({@el, todoList}) ->
       clearCompleted = @$('#clear-completed').asEventStream('click')
 
       clearCompleted
-        .map(model, 'completed')
-        .onValue(model, 'remove')
+        .map(todoList.completed)
+        .onValue((ts) -> _.invoke ts, 'destroy')
 
-      openTodos
+      todoList.open
         .map((ts) -> "<strong>#{ts.length}</strong> " + if ts.length == 1 then "item left" else "items left")
-        .onValue @$('#todo-count'), 'html'
+        .onValue(@$('#todo-count'), 'html')
 
+      todoList.someCompleted
+        .onValue(@$('#clear-completed'), 'toggle')
 
-      completedListNotEmpty
-        .onValue @$('#clear-completed'), 'toggle'
-
-      completedTodos
-        .onValue (completedTodos) => @$('#clear-completed').text "Clear completed (#{completedTodos.length})"
+      todoList.completed
+        .onValue((completedTodos) => @$('#clear-completed').text "Clear completed (#{completedTodos.length})")

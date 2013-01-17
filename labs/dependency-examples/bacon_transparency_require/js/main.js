@@ -4,8 +4,9 @@
     paths: {
       'jquery': '../../../../assets/jquery.min',
       'backbone': 'lib/backbone-min',
+      'localstorage': 'lib/backbone.localStorage-min',
       'backbone.eventstream': 'lib/backbone.eventstream',
-      'lodash': 'lib/lodash.min',
+      'underscore': 'lib/underscore-min',
       'bacon': 'lib/bacon.min',
       'transparency': 'lib/transparency.min'
     },
@@ -15,16 +16,16 @@
         exports: 'Bacon'
       },
       backbone: {
-        deps: ['lodash'],
+        deps: ['underscore'],
         exports: 'Backbone'
       },
-      lodash: {
+      underscore: {
         exports: '_'
       }
     }
   });
 
-  require(['jquery', 'transparency', 'backbone', 'lodash', 'app', 'backbone.eventstream'], function($, Transparency, Backbone, _, TodoApp) {
+  require(['jquery', 'transparency', 'backbone', 'underscore', 'app', 'backbone.eventstream'], function($, Transparency, Backbone, _, TodoApp) {
     _.extend(Backbone.Model.prototype, Backbone.EventStream);
     _.extend(Backbone.Collection.prototype, Backbone.EventStream);
     Transparency.register($);
