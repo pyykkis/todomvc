@@ -48,9 +48,8 @@ define ['backbone', 'bacon', 'models/todo', 'models/todo_list', 'controllers/foo
       todoList.allCompleted.onValue @$('#toggle-all'),    'prop', 'checked'
 
       todoList.changed.onValue (todos) =>
-        @$('#todo-list').render todoList.toJSON(),
+        @$('#todo-list').render todos.toJSON(),
           todo: 'class': (p) -> if @completed then "todo completed" else "todo"
-          # Ugly, fix Transparency
-          toggle: checked: (p) -> $(p.element).prop('checked', @completed); return
+          toggle: checked: (p) -> @completed
 
       todoList.fetch()
