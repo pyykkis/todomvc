@@ -1,5 +1,6 @@
 (function() {
-  var __hasProp = {}.hasOwnProperty,
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   define(function(require) {
@@ -10,11 +11,14 @@
     TodoList = require('models/todo_list');
     FooterController = require('controllers/footer');
     return TodoApp = (function(_super) {
-      var ENTER_KEY, enterPressed, getTodo, value;
+      var ENTER_KEY, enterPressed, value;
 
       __extends(TodoApp, _super);
 
       function TodoApp() {
+        this.render = __bind(this.render, this);
+
+        this.getTodo = __bind(this.getTodo, this);
         return TodoApp.__super__.constructor.apply(this, arguments);
       }
 
@@ -28,19 +32,12 @@
         return e.target.value.trim();
       };
 
-      getTodo = function(model) {
-        return function(e) {
-          return model.get(e.target.transparency.model);
-        };
-      };
-
       TodoApp.prototype.initialize = function() {
-        var deleteTodo, editTodo, finishEdit, footerController, newTodo, todoList, toggleAll, toggleTodo,
-          _this = this;
-        todoList = new TodoList();
+        var deleteTodo, editTodo, finishEdit, footerController, newTodo, toggleAll, toggleTodo;
+        this.todoList = new TodoList();
         footerController = new FooterController({
           el: this.$('#footer'),
-          collection: todoList
+          collection: this.todoList
         });
         toggleAll = this.$('#toggle-all').asEventStream('click');
         toggleTodo = this.$('#todo-list').asEventStream('click', '.toggle');
@@ -48,13 +45,13 @@
         editTodo = this.$('#todo-list').asEventStream('dblclick', '.title');
         finishEdit = this.$('#todo-list').asEventStream('keyup', '.edit').filter(enterPressed);
         newTodo = this.$('#new-todo').asEventStream('keyup').filter(enterPressed).map(value).filter('.length');
-        toggleAll.map('.target.checked').onValue(todoList, 'toggleAll');
-        toggleTodo.map(getTodo(todoList)).onValue(function(todo) {
+        toggleAll.map('.target.checked').onValue(this.todoList, 'toggleAll');
+        toggleTodo.map(this.getTodo).onValue(function(todo) {
           return todo.save({
             completed: !todo.get('completed')
           });
         });
-        deleteTodo.map(getTodo(todoList)).onValue(function(todo) {
+        deleteTodo.map(this.getTodo).onValue(function(todo) {
           return todo.destroy();
         });
         editTodo.onValue(function(e) {
@@ -62,7 +59,7 @@
         });
         finishEdit.map(function(e) {
           return {
-            todo: getTodo(todoList)(e),
+            todo: this.getTodo(e),
             title: value(e)
           };
         }).onValue(function(_arg) {
@@ -73,32 +70,38 @@
           });
         });
         newTodo.onValue(function(title) {
-          return todoList.create({
+          return this.todoList.create({
             title: title
           });
         });
         newTodo.onValue(this.$('#new-todo'), 'val', '');
-        todoList.notEmpty.onValue(this.$('#main, #footer'), 'toggle');
-        todoList.allCompleted.onValue(this.$('#toggle-all'), 'prop', 'checked');
-        todoList.changed.onValue(function(todos) {
-          return _this.$('#todo-list').render(todos.toJSON(), {
-            todo: {
-              "class": function(p) {
-                if (this.completed) {
-                  return "todo completed";
-                } else {
-                  return "todo";
-                }
-              }
-            },
-            toggle: {
-              checked: function(p) {
-                return this.completed;
+        this.todoList.notEmpty.onValue(this.$('#main, #footer'), 'toggle');
+        this.todoList.allCompleted.onValue(this.$('#toggle-all'), 'prop', 'checked');
+        this.todoList.changed.onValue(this.render);
+        return this.todoList.fetch();
+      };
+
+      TodoApp.prototype.getTodo = function(e) {
+        return this.todoList.get(e.target.transparency.model);
+      };
+
+      TodoApp.prototype.render = function(todos) {
+        return this.$('#todo-list').render(todos.toJSON(), {
+          todo: {
+            "class": function(p) {
+              if (this.completed) {
+                return "todo completed";
+              } else {
+                return "todo";
               }
             }
-          });
+          },
+          toggle: {
+            checked: function(p) {
+              return this.completed;
+            }
+          }
         });
-        return todoList.fetch();
       };
 
       return TodoApp;

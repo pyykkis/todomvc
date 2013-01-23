@@ -7,13 +7,12 @@ define (require) ->
 
   class TodoApp extends Backbone.View
     ENTER_KEY    = 13
-    enterPressed = (e)     -> e.keyCode == ENTER_KEY
-    value        = (e)     -> e.target.value.trim()
-    getTodo      = (model) -> (e) -> model.get e.target.transparency.model
+    enterPressed = (e) -> e.keyCode == ENTER_KEY
+    value        = (e) -> e.target.value.trim()
 
     initialize: ->
-      todoList         = new TodoList()
-      footerController = new FooterController(el: @$('#footer'), collection: todoList)
+      @todoList         = new TodoList()
+      footerController = new FooterController(el: @$('#footer'), collection: @todoList)
 
       # EventStreams
       toggleAll  = @$('#toggle-all').asEventStream('click')
@@ -28,33 +27,35 @@ define (require) ->
 
       toggleAll
         .map('.target.checked')
-        .onValue(todoList, 'toggleAll')
+        .onValue(@todoList, 'toggleAll')
 
       toggleTodo
-        .map(getTodo(todoList))
+        .map(@getTodo)
         .onValue((todo) -> todo.save completed: !todo.get 'completed')
 
       deleteTodo
-        .map(getTodo(todoList))
+        .map(@getTodo)
         .onValue((todo) -> todo.destroy())
 
       editTodo
         .onValue((e) -> $(e.currentTarget).closest('.todo').addClass('editing').find('.edit').focus())
 
       finishEdit
-        .map((e) -> todo: getTodo(todoList)(e), title: value(e))
+        .map((e) -> todo: @getTodo(e), title: value(e))
         .onValue(({todo, title}) -> todo.save title: title)
 
-      newTodo
-        .onValue((title) -> todoList.create title: title)
+      newTodo.onValue((title) -> @todoList.create title: title)
 
-      newTodo.onValue               @$('#new-todo'),      'val', ''
-      todoList.notEmpty.onValue     @$('#main, #footer'), 'toggle'
-      todoList.allCompleted.onValue @$('#toggle-all'),    'prop', 'checked'
+      newTodo.onValue                @$('#new-todo'),      'val', ''
+      @todoList.notEmpty.onValue     @$('#main, #footer'), 'toggle'
+      @todoList.allCompleted.onValue @$('#toggle-all'),    'prop', 'checked'
+      @todoList.changed.onValue      @render
 
-      todoList.changed.onValue (todos) =>
-        @$('#todo-list').render todos.toJSON(),
-          todo: class:     (p) -> if @completed then "todo completed" else "todo"
-          toggle: checked: (p) -> @completed
+      @todoList.fetch()
 
-      todoList.fetch()
+    getTodo: (e) => @todoList.get e.target.transparency.model
+
+    render: (todos) =>
+      @$('#todo-list').render todos.toJSON(),
+        todo:     class: (p) -> if @completed then "todo completed" else "todo"
+        toggle: checked: (p) -> @completed
