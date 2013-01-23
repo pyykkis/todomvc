@@ -2,8 +2,13 @@
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(['backbone', 'bacon', 'models/todo', 'models/todo_list', 'controllers/footer'], function(Backbone, Bacon, Todo, TodoList, FooterController) {
-    var TodoApp;
+  define(function(require) {
+    var Backbone, Bacon, FooterController, Todo, TodoApp, TodoList;
+    Backbone = require('backbone');
+    Bacon = require('bacon');
+    Todo = require('models/todo');
+    TodoList = require('models/todo_list');
+    FooterController = require('controllers/footer');
     return TodoApp = (function(_super) {
       var ENTER_KEY, enterPressed, getTodo, value;
 
@@ -76,7 +81,7 @@
         todoList.notEmpty.onValue(this.$('#main, #footer'), 'toggle');
         todoList.allCompleted.onValue(this.$('#toggle-all'), 'prop', 'checked');
         todoList.changed.onValue(function(todos) {
-          return _this.$('#todo-list').render(todoList.toJSON(), {
+          return _this.$('#todo-list').render(todos.toJSON(), {
             todo: {
               'class': function(p) {
                 if (this.completed) {
@@ -88,7 +93,7 @@
             },
             toggle: {
               checked: function(p) {
-                $(p.element).prop('checked', this.completed);
+                return this.completed;
               }
             }
           });

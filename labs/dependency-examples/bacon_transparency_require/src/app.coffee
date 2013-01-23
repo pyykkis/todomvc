@@ -1,4 +1,9 @@
-define ['backbone', 'bacon', 'models/todo', 'models/todo_list', 'controllers/footer'], (Backbone, Bacon, Todo, TodoList, FooterController) ->
+define (require) ->
+  Backbone         = require 'backbone'
+  Bacon            = require 'bacon'
+  Todo             = require 'models/todo'
+  TodoList         = require 'models/todo_list'
+  FooterController = require 'controllers/footer'
 
   class TodoApp extends Backbone.View
     ENTER_KEY    = 13
@@ -49,7 +54,7 @@ define ['backbone', 'bacon', 'models/todo', 'models/todo_list', 'controllers/foo
 
       todoList.changed.onValue (todos) =>
         @$('#todo-list').render todos.toJSON(),
-          todo: 'class': (p) -> if @completed then "todo completed" else "todo"
+          todo: 'class':   (p) -> if @completed then "todo completed" else "todo"
           toggle: checked: (p) -> @completed
 
       todoList.fetch()
