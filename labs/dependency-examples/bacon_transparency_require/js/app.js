@@ -83,7 +83,7 @@
         todoList.changed.onValue(function(todos) {
           return _this.$('#todo-list').render(todos.toJSON(), {
             todo: {
-              'class': function(p) {
+              "class": function(p) {
                 if (this.completed) {
                   return "todo completed";
                 } else {

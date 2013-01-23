@@ -54,7 +54,7 @@ define (require) ->
 
       todoList.changed.onValue (todos) =>
         @$('#todo-list').render todos.toJSON(),
-          todo: 'class':   (p) -> if @completed then "todo completed" else "todo"
+          todo: class:     (p) -> if @completed then "todo completed" else "todo"
           toggle: checked: (p) -> @completed
 
       todoList.fetch()
