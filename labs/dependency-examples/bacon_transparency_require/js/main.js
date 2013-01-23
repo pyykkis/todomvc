@@ -5,7 +5,7 @@
       'jquery': '../../../../assets/jquery.min',
       'backbone': 'lib/backbone-min',
       'localstorage': 'lib/backbone.localStorage-min',
-      'backbone.eventstream': 'lib/backbone.eventstream',
+      'backboneEventStreams': 'lib/backbone.eventstreams.min',
       'underscore': 'lib/underscore-min',
       'bacon': 'lib/bacon.min',
       'transparency': 'lib/transparency.min'
@@ -21,13 +21,14 @@
       },
       underscore: {
         exports: '_'
+      },
+      backboneEventStreams: {
+        deps: ['backbone', 'bacon']
       }
     }
   });
 
-  require(['jquery', 'transparency', 'backbone', 'underscore', 'app', 'backbone.eventstream'], function($, Transparency, Backbone, _, TodoApp) {
-    _.extend(Backbone.Model.prototype, Backbone.EventStream);
-    _.extend(Backbone.Collection.prototype, Backbone.EventStream);
+  require(['jquery', 'transparency', 'backbone', 'underscore', 'app', 'backboneEventStreams'], function($, Transparency, Backbone, _, TodoApp) {
     Transparency.register($);
     return $(function() {
       return new TodoApp({
