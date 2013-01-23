@@ -11,7 +11,7 @@ define (require) ->
     value        = (e) -> e.target.value.trim()
 
     initialize: ->
-      @todoList         = new TodoList()
+      @todoList        = new TodoList()
       footerController = new FooterController(el: @$('#footer'), collection: @todoList)
 
       # EventStreams
