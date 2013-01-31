@@ -4,7 +4,7 @@ define ['bacon', 'backbone', 'underscore', 'models/todo', 'localstorage'], (Baco
     model: Todo
     localStorage: new Backbone.LocalStorage('todos-bacon')
 
-    toggleAll: (completed) -> @invoke 'set', 'completed', completed
+    toggleAll: (completed) -> @each (todo) -> todo.save completed: completed
 
     initialize: ->
       @changed       = @asEventStream("add remove reset change").map(this).toProperty()

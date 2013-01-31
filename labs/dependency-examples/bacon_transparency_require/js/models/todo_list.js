@@ -17,7 +17,11 @@
       TodoList.prototype.localStorage = new Backbone.LocalStorage('todos-bacon');
 
       TodoList.prototype.toggleAll = function(completed) {
-        return this.invoke('set', 'completed', completed);
+        return this.each(function(todo) {
+          return todo.save({
+            completed: completed
+          });
+        });
       };
 
       TodoList.prototype.initialize = function() {
