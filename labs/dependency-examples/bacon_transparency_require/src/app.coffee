@@ -41,10 +41,10 @@ define (require) ->
         .onValue((e) -> $(e.currentTarget).closest('.todo').addClass('editing').find('.edit').focus())
 
       finishEdit
-        .map((e) -> todo: @getTodo(e), title: value(e))
+        .map((e) => todo: @getTodo(e), title: value(e))
         .onValue(({todo, title}) -> todo.save title: title)
 
-      newTodo.onValue((title) -> @todoList.create title: title)
+      newTodo.onValue((title) => @todoList.create title: title)
 
       newTodo.onValue                @$('#new-todo'),      'val', ''
       @todoList.notEmpty.onValue     @$('#main, #footer'), 'toggle'

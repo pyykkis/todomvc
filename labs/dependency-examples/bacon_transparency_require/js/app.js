@@ -33,7 +33,8 @@
       };
 
       TodoApp.prototype.initialize = function() {
-        var deleteTodo, editTodo, finishEdit, footerController, newTodo, toggleAll, toggleTodo;
+        var deleteTodo, editTodo, finishEdit, footerController, newTodo, toggleAll, toggleTodo,
+          _this = this;
         this.todoList = new TodoList();
         footerController = new FooterController({
           el: this.$('#footer'),
@@ -59,7 +60,7 @@
         });
         finishEdit.map(function(e) {
           return {
-            todo: this.getTodo(e),
+            todo: _this.getTodo(e),
             title: value(e)
           };
         }).onValue(function(_arg) {
@@ -70,7 +71,7 @@
           });
         });
         newTodo.onValue(function(title) {
-          return this.todoList.create({
+          return _this.todoList.create({
             title: title
           });
         });
